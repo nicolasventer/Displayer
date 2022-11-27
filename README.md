@@ -21,7 +21,7 @@ More details on Extra Displayers [here](extra/README.md).
 
 # Installation
 
-Get the file `AllDisplayers.hpp` (generate it with `python AllInOne.py` or download it from the [release](https://github.com/nicolasventer/Cpp-Displayer/releases).
+Get the file `AllDisplayers.hpp` (generate it with `python AllInOne.py` or download it from the [release](https://github.com/nicolasventer/Cpp-Displayer/releases)).
 
 ### Header only
 
