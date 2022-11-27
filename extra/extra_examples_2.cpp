@@ -1,12 +1,9 @@
 #include <iostream>
 
 #define DISPLAYER_IMPLEMENTATION
-#include "Displayer.hpp"
-
-#include "extra/BoxDisplayer.hpp"
-#include "extra/CsvDisplayer.hpp"
-#include "extra/ExtraDisplayer.hpp"
-#include "extra/JsonDisplayer.hpp"
+#include "BoxDisplayer.hpp"
+#include "CsvDisplayer.hpp"
+#include "JsonDisplayer.hpp"
 
 static const struct
 {
@@ -39,12 +36,15 @@ struct Person
 	// phone number array converter
 	static const ArrayConverter& s_getPhoneNumberAC()
 	{
-		static ArrayConverter phoneNumberArrayConverter = ArrayConverter(
-			OSTREAM_FUNC_LAMBDA() { return os << std::setfill('0') << std::setw(2); }, // ostreamFunc
-			" ",																	   // separator
-			"",																		   // prefix
-			""																		   // suffix
-		);
+		static ArrayConverter phoneNumberArrayConverter = []()
+		{
+			ArrayConverter result;
+			result.ostreamFunc = OSTREAM_FUNC_LAMBDA() { return os << std::setfill('0') << std::setw(2); };
+			result.prefix = "";
+			result.suffix = "";
+			result.separator = " ";
+			return result;
+		}();
 		return phoneNumberArrayConverter;
 	}
 };
@@ -76,33 +76,23 @@ int main()
 		PersonKeys.canDrive,
 	};
 
-	std::cout << "\n=========== BASIC DISPLAY ===========\n" << std::endl;
-
-	ExtraDisplayer extraDisplayer = ExtraDisplayer(sl);
-	std::cout << extraDisplayer.display(extraDisplayer.headerDisplayFuncMap) << std::endl;
-	for (const auto& person : personList) std::cout << extraDisplayer.display(person.toDisplayFuncMap()) << std::endl;
-
-	std::cout << "\n=========== BOX DISPLAY ===========\n" << std::endl;
-
-	BoxDisplayer boxDisplayer(extraDisplayer);
+	std::cout << "--- Example 6 ---" << std::endl;
+	BoxDisplayer boxDisplayer(sl, BorderPreset::ALL);
 
 	std::cout << boxDisplayer.displayHeader() << std::endl;
-	auto beforeEnd = std::prev(personList.end());
-	for (auto it = personList.begin(); it != beforeEnd; ++it)
-		std::cout << boxDisplayer.display(it->toDisplayFuncMap(), false) << std::endl;
-	std::cout << boxDisplayer.display(beforeEnd->toDisplayFuncMap(), true) << std::endl;
+	for (uint32_t i = 0; i < personList.size() - 1; ++i)
+		std::cout << boxDisplayer.display(personList[i].toDisplayFuncMap(), false) << std::endl;
+	std::cout << boxDisplayer.display(personList.back().toDisplayFuncMap(), true) << std::endl;
 
-	std::cout << "\n=========== CSV DISPLAY ===========\n" << std::endl;
+	std::cout << "--- Example 7 ---" << std::endl;
+	CsvDisplayer csvDisplayer(sl);
 
-	CsvDisplayer csvDisplayer(boxDisplayer.getBaseKeyList());
 	std::cout << csvDisplayer.display(csvDisplayer.headerDisplayFuncMap) << std::endl;
-	for (const auto& person : personList) std::cout << csvDisplayer.display(person.toDisplayFuncMap()) << std::endl;
+	for (const auto& displayFuncMap : displayFuncMapList) std::cout << csvDisplayer.display(displayFuncMap) << std::endl;
 
-	std::cout << "\n=========== JSON DISPLAY ===========\n" << std::endl;
+	std::cout << "--- Example 8 ---" << std::endl;
+	JsonDisplayer jsonDisplayer(sl, " ", ""); // no newline display
 
-	JsonDisplayer jsonDisplayer(extraDisplayer, " ", ""); // no newline display
 	jsonDisplayer.setKeyAsString(PersonKeys.name);
 	for (const auto& person : personList) std::cout << jsonDisplayer.display(person.toDisplayFuncMap()) << std::endl;
-
-	return 0;
 }
